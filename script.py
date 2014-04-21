@@ -12,29 +12,37 @@ LIMIT = 200
 
 def tweetserve():
     # get the latest mentioners
-    mentioners = get_mentioners(180)
+    mentioners = get_mentioners(LIMIT)
+    pp("# mentioners: %d" % len(mentioners))
 
     # filter out those whose tweets are protected
     mentioners = [m for m in mentioners if not m['protected']]
+    pp("# unprotected mentioners: %d" % len(mentioners))
 
     ids = list(set([m['id'] for m in mentioners]))
+    pp("# unique ids: %d" % len(ids))
 
     friendships = lookup_friendships(ids)
 
     #filter out people that don't follow
     friendships = [f for f
                    in friendships
-                   if f['relationship']['source']['followed_by']]
+                   if 'followed_by' in f['connections']]
+    pp("# following mentioners: %d" % len(friendships))
 
     selected = random.sample(friendships,1)[0]
+    pp("Selected friendship:")
+    pp(selected)
 
     try:
-        sn = selected['relationship']['target']['screen_name']
+        sn = selected['screen_name']
         lt = get_last_tweet(sn)
         rt = t.statuses.retweet(id=lt['id'])
+        pp("RT: %s" % lt['text'])
 
-        if not selected['relationship']['source']['following']:
+        if 'following' not in selected['connections']:
             new_friend = t.friendships.create(screen_name=sn)
+            pp("Created new friendship")
     except:
         '''
         e.g.:
