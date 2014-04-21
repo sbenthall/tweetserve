@@ -8,8 +8,7 @@ import random
 ## rate limits on friendship/show
 ## should be able to increase to 200 when using
 ## friendship/lookup
-LIMIT = 180 
-SOURCE = "TheTweetserve"
+LIMIT = 200
 
 def tweetserve():
     # get the latest mentioners
@@ -23,8 +22,8 @@ def tweetserve():
     friendships = lookup_friendships(ids)
 
     #filter out people that don't follow
-    friendships = [f for f 
-                   in friendships 
+    friendships = [f for f
+                   in friendships
                    if f['relationship']['source']['followed_by']]
 
     selected = random.sample(friendships,1)[0]
@@ -32,8 +31,8 @@ def tweetserve():
     try:
         sn = selected['relationship']['target']['screen_name']
         lt = get_last_tweet(sn)
-        rt = t.statuses.retweet(id=lt['id'])    
-    
+        rt = t.statuses.retweet(id=lt['id'])
+
         if not selected['relationship']['source']['following']:
             new_friend = t.friendships.create(screen_name=sn)
     except:
