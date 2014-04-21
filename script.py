@@ -1,63 +1,49 @@
 from pprint import pprint as pp
-import ConfigParser
+from funcs import *
 import random
-from twitter import Twitter, OAuth
 
-config= ConfigParser.ConfigParser()
-config.read('config.cfg')
+## These really should go in the config file
 
-oauth = OAuth(config.get('OAuth','accesstoken'),
-                             config.get('OAuth','accesstokenkey'),
-                             config.get('OAuth','consumerkey'),
-                             config.get('OAuth','consumersecret'))
-
-t = Twitter(auth=oauth)
-
-def get_mentioners():
-    ## Check mentions
-    mentions = t.statuses.mentions_timeline(count=200)
-    ## Get users
-    users = set([(mention['user']['screen_name'],mention['user']['id'])
-                 for mention in mentions])
-    return users
-
-def select(users):
-    while len(users) > 0:
-        ## pick a random mentioner
-        ruser = random.sample(users,1)[0]
-        users.remove(ruser)
-
-        ## test to see if they follow
-        friendship = t.friendships.show(source_screen_name='sbenthall',target_id=ruser[1])
-
-        if friendship['relationship']['source']['followed_by']:
-            return ruser
-
-    return None
-
-def get_last_tweet(user):
-    return t.statuses.user_timeline(screen_name=user[0])[0]
+## currently set to make it so we don't hit window
+## rate limits on friendship/show
+## should be able to increase to 200 when using
+## friendship/lookup
+LIMIT = 180 
+SOURCE = "TheTweetserve"
 
 def tweetserve():
-    mentioners = get_mentioners()
+    # get the latest mentioners
+    mentioners = get_mentioners(180)
 
-    while len(mentioners) > 0:
-        selected = select(mentioners)
+    # filter out those whose tweets are protected
+    mentioners = [m for m in mentioners if not m['protected']]
 
-        pp(selected)
+    ids = list(set([m['id'] for m in mentioners]))
 
-        last = get_last_tweet(selected)
+    friendships = lookup_friendships(ids)
 
-        pp(last['text'])
+    #filter out people that don't follow
+    friendships = [f for f 
+                   in friendships 
+                   if f['relationship']['source']['followed_by']]
 
-        try:
-            result = t.statuses.retweet(id=last['id'])
-            return result
-        except:
-            pass
+    selected = random.sample(friendships,1)[0]
 
-    #if none could be retweeted, do nothing
-    pp('Nothing could be retweeted')
-    return None
+    try:
+        sn = selected['relationship']['target']['screen_name']
+        lt = get_last_tweet(sn)
+        rt = t.statuses.retweet(id=lt['id'])    
+    
+        if not selected['relationship']['source']['following']:
+            new_friend = t.friendships.create(screen_name=sn)
+    except:
+        '''
+        e.g.:
+        twitter.api.TwitterHTTPError: Twitter sent status 403 for URL: 1.1/statuses/retweet/458044608862121984.json using parameters: (oauth_consumer_key=xPWeJ3r8hEjI33spI1ZN6B1P0&oauth_nonce=9177998659638958997&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1398041579&oauth_token=2300627557-lhe1sbDBE6xFrLowAb40QDYR4D0BLvCDkKcwQfp&oauth_version=1.0&oauth_signature=M8r%2BQ71GDCMs%2FkrNbxmeyAsnv0o%3D)
+        details: {"errors":"sharing is not permissible for this status (Share validations failed)"
+
+        '''
+        pass
+
 
 tweetserve()
