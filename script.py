@@ -1,14 +1,25 @@
 from pprint import pprint as pp
 from funcs import *
+import time
 import random
+import ConfigParser
 
-## These really should go in the config file
+config= ConfigParser.ConfigParser()
+config.read('config.cfg')
+
+PERIOD = int(config.get('Run','period'))
 
 ## currently set to make it so we don't hit window
 ## rate limits on friendship/show
 ## should be able to increase to 200 when using
 ## friendship/lookup
-LIMIT = 200
+LIMIT = config.get('Run','limit')
+
+def wait(period):
+    window_in_seconds = period * 60
+    seconds = random.randint(0,window_in_seconds)
+    pp("Waiting %d minutes" % (float(seconds) / 60) )
+    time.sleep(seconds)
 
 def tweetserve():
     # get the latest mentioners
@@ -52,5 +63,5 @@ def tweetserve():
         '''
         pass
 
-
+wait(PERIOD)
 tweetserve()
