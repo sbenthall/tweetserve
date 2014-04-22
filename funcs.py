@@ -20,10 +20,6 @@ def get_mentioners(limit):
     users = [mention['user'] for mention in mentions]
     return users
 
-def get_last_tweet(sn):
-    return t.statuses.user_timeline(screen_name=sn)[0]
-
-
 def show_friendships(source_screen_name,ids):
     friendships = [t.friendships.show(
             source_screen_name=source_screen_name,

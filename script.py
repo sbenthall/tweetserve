@@ -45,23 +45,24 @@ def tweetserve():
     pp("Selected friend: %s / @%s" % (selected['name'],selected['screen_name']))
     pp("Connections: %s" % (",".join(selected['connections'])))
 
-    try:
-        sn = selected['screen_name']
-        lt = get_last_tweet(sn)
-        rt = t.statuses.retweet(id=lt['id'])
-        pp("RT: %s" % lt['text'])
+    sn = selected['screen_name']
+    #selects last 20 tweets by default but could have this be a setting
+    tweets = t.statuses.user_timeline(screen_name=sn)
 
-        if 'following' not in selected['connections']:
-            new_friend = t.friendships.create(screen_name=sn)
-            pp("Created new friendship")
-    except:
-        '''
-        e.g.:
-        twitter.api.TwitterHTTPError: Twitter sent status 403 for URL: 1.1/statuses/retweet/458044608862121984.json using parameters: (oauth_consumer_key=xPWeJ3r8hEjI33spI1ZN6B1P0&oauth_nonce=9177998659638958997&oauth_signature_method=HMAC-SHA1&oauth_timestamp=1398041579&oauth_token=2300627557-lhe1sbDBE6xFrLowAb40QDYR4D0BLvCDkKcwQfp&oauth_version=1.0&oauth_signature=M8r%2BQ71GDCMs%2FkrNbxmeyAsnv0o%3D)
-        details: {"errors":"sharing is not permissible for this status (Share validations failed)"
+    if 'following' not in selected['connections']:
+        new_friend = t.friendships.create(screen_name=sn)
+        pp("Created new friendship")
 
-        '''
-        pass
+    rt = None
+
+    while rt is None and len(tweets) > 0:
+        lt = tweets.pop()
+        try:
+            rt = t.statuses.retweet(id=lt['id'])
+            pp("RT: @%s: %s" % (lt['user']['screen_name'],lt['text']))
+        except:
+            pp("Unable to RT tweet: @%s: %s" % (lt['user']['screen_name'],lt['text']))
+            pass
 
 wait(PERIOD)
 tweetserve()
