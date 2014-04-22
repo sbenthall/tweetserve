@@ -42,8 +42,8 @@ def tweetserve():
     pp("# following mentioners: %d" % len(friendships))
 
     selected = random.sample(friendships,1)[0]
-    pp("Selected friendship:")
-    pp(selected)
+    pp("Selected friend: %s / @%s" % (selected['name'],selected['screen_name']))
+    pp("Connections: %s" % (",".join(selected['connections'])))
 
     try:
         sn = selected['screen_name']
