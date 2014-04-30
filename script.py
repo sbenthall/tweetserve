@@ -56,7 +56,7 @@ def tweetserve():
     rt = None
 
     while rt is None and len(tweets) > 0:
-        lt = tweets.pop()
+        lt = tweets.pop(0)
         try:
             rt = t.statuses.retweet(id=lt['id'])
             pp("RT: @%s: %s" % (lt['user']['screen_name'],lt['text']))
