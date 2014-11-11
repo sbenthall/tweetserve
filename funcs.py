@@ -19,14 +19,6 @@ def get_mentioners(limit):
     ## Get users
     users = [mention['user'] for mention in mentions]
     return users
-
-def show_friendships(source_screen_name,ids):
-    friendships = [t.friendships.show(
-            source_screen_name=source_screen_name,
-            target_id=uid)
-                   for uid
-                   in ids]
-    return friendships
                   
 def lookup_friendships(ids):
     friendships = []
