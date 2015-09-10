@@ -26,7 +26,8 @@ def lookup_friendships(ids):
     for user_slice in [ids[x:x+100]
                        for x
                        in xrange(0,len(ids),100)]:
-        query = ",".join([str(x) for x in ids])
+                         
+        query = ",".join([str(x) for x in user_slice])
 
         result = t.friendships.lookup(user_id=query,_method="GET")
         friendships.extend(result)
